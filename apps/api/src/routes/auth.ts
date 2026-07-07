@@ -22,7 +22,7 @@ export async function authRoutes(app: FastifyInstance) {
       response_type: "code",
       client_id: process.env.SPOTIFY_CLIENT_ID || "",
       scope: SCOPES,
-      redirect_uri: `${process.env.API_URL || "http://127.0.0.1:3001"}/auth/callback`,
+      redirect_uri: `${process.env.WEB_URL || "http://127.0.0.1:3000"}/auth/callback`,
       show_dialog: "true",
       ...(redirect ? { state: redirect } : {}),
     });
@@ -45,7 +45,7 @@ export async function authRoutes(app: FastifyInstance) {
       body: new URLSearchParams({
         grant_type: "authorization_code",
         code,
-        redirect_uri: `${process.env.API_URL || "http://127.0.0.1:3001"}/auth/callback`,
+        redirect_uri: `${process.env.WEB_URL || "http://127.0.0.1:3000"}/auth/callback`,
       }),
     });
 
@@ -101,11 +101,10 @@ export async function authRoutes(app: FastifyInstance) {
       },
     });
 
-    const isProd = process.env.NODE_ENV === "production";
     reply.setCookie("session", user.id, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
@@ -156,21 +155,19 @@ export async function authRoutes(app: FastifyInstance) {
 
     const { prisma } = await import("@deepfuse/db");
     await prisma.user.delete({ where: { id: userId } });
-    const isProdDel = process.env.NODE_ENV === "production";
     reply.clearCookie("session", {
       path: "/",
-      secure: isProdDel,
-      sameSite: isProdDel ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
     });
     return { ok: true };
   });
 
   app.post("/logout", async (_req, reply) => {
-    const isProdLogout = process.env.NODE_ENV === "production";
     reply.clearCookie("session", {
       path: "/",
-      secure: isProdLogout,
-      sameSite: isProdLogout ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
     });
     return { ok: true };
   });

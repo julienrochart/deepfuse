@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 interface User {
   id: string;
   displayName: string;
@@ -26,7 +24,7 @@ export default function NewPlaylistPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/auth/me`, { credentials: "include" })
+    fetch("/auth/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           router.push("/");
@@ -44,7 +42,7 @@ export default function NewPlaylistPage() {
     setCreating(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/playlists`, {
+      const res = await fetch("/api/playlists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -66,7 +64,7 @@ export default function NewPlaylistPage() {
     setCreating(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/playlists`, {
+      const res = await fetch("/api/playlists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

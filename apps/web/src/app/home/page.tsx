@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 interface User {
   id: string;
   displayName: string;
@@ -36,10 +34,8 @@ export default function HomePage() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/auth/me`, { credentials: "include" }).then((r) => (r.ok ? r.json() : null)),
-      fetch(`${API_URL}/api/playlists`, { credentials: "include" }).then((r) =>
-        r.ok ? r.json() : []
-      ),
+      fetch("/auth/me", { credentials: "include" }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/playlists", { credentials: "include" }).then((r) => (r.ok ? r.json() : [])),
     ])
       .then(([u, pls]) => {
         if (!u) {
@@ -56,7 +52,7 @@ export default function HomePage() {
   }, []);
 
   async function handleLogout() {
-    await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
+    await fetch("/auth/logout", { method: "POST", credentials: "include" });
     window.location.href = "/";
   }
 
@@ -70,7 +66,7 @@ export default function HomePage() {
     const shareCode = match ? match[1] : input;
 
     try {
-      const res = await fetch(`${API_URL}/api/playlists/${shareCode}/join`, {
+      const res = await fetch(`/api/playlists/${shareCode}/join`, {
         method: "POST",
         credentials: "include",
       });
@@ -89,7 +85,7 @@ export default function HomePage() {
 
   async function handleDeleteAccount() {
     if (!confirm("Are you sure? All your playlists and data will be permanently deleted.")) return;
-    const res = await fetch(`${API_URL}/auth/account`, {
+    const res = await fetch("/auth/account", {
       method: "DELETE",
       credentials: "include",
     });
@@ -258,7 +254,7 @@ export default function HomePage() {
                         onClick={async (e) => {
                           e.stopPropagation();
                           if (!confirm(`Delete "${pl.name}"?`)) return;
-                          const res = await fetch(`${API_URL}/api/playlists/${pl.shareCode}`, {
+                          const res = await fetch(`/api/playlists/${pl.shareCode}`, {
                             method: "DELETE",
                             credentials: "include",
                           });

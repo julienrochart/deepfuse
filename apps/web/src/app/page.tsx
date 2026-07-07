@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 function Logo() {
   return (
     <svg
@@ -31,13 +29,13 @@ export default function LandingPage() {
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         <a
-          href={`${API_URL}/auth/login`}
+          href={"/auth/login"}
           className="block rounded-full bg-accent py-4 text-center text-lg font-semibold text-white shadow-lg transition hover:shadow-xl"
         >
           Sign up
         </a>
         <a
-          href={`${API_URL}/auth/login`}
+          href={"/auth/login"}
           className="block rounded-full bg-white py-4 text-center text-lg font-semibold text-accent transition hover:bg-gray-50"
         >
           Log in

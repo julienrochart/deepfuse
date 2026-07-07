@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 interface SpotifyPlayerState {
   isReady: boolean;
   isPremium: boolean;
@@ -41,7 +39,7 @@ interface SpotifyPlayer {
 
 async function fetchToken(): Promise<string | null> {
   try {
-    const res = await fetch(`${API_URL}/auth/token`, { credentials: "include" });
+    const res = await fetch("/auth/token", { credentials: "include" });
     if (!res.ok) return null;
     const data = await res.json();
     return data.token;
@@ -68,7 +66,7 @@ export function useSpotifyPlayer() {
     let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
     async function init() {
-      const res = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
+      const res = await fetch("/auth/me", { credentials: "include" });
       if (!res.ok) return;
       const user = await res.json();
       if (!user.isPremium) {

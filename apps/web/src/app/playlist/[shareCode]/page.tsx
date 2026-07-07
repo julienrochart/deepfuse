@@ -4,8 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSpotifyPlayer } from "@/hooks/useSpotifyPlayer";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 interface User {
   id: string;
   displayName: string;
@@ -74,10 +72,8 @@ export default function PlaylistPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/playlists/${params.shareCode}`, { credentials: "include" }).then((r) =>
-        r.json()
-      ),
-      fetch(`${API_URL}/auth/me`, { credentials: "include" }).then((r) => (r.ok ? r.json() : null)),
+      fetch(`/api/playlists/${params.shareCode}`, { credentials: "include" }).then((r) => r.json()),
+      fetch("/auth/me", { credentials: "include" }).then((r) => (r.ok ? r.json() : null)),
     ]).then(([pl, user]) => {
       setPlaylist(pl);
       setCurrentUser(user);
@@ -239,7 +235,7 @@ export default function PlaylistPage() {
 
   async function handleStop() {
     if (!confirm("Stop this playlist? No one will be able to join or play it anymore.")) return;
-    const res = await fetch(`${API_URL}/api/playlists/${params.shareCode}/stop`, {
+    const res = await fetch(`/api/playlists/${params.shareCode}/stop`, {
       method: "PATCH",
       credentials: "include",
     });
@@ -256,7 +252,7 @@ export default function PlaylistPage() {
     if (fusing) return;
     setFusing(true);
     try {
-      const res = await fetch(`${API_URL}/api/playlists/${params.shareCode}/fuse`, {
+      const res = await fetch(`/api/playlists/${params.shareCode}/fuse`, {
         method: "POST",
         credentials: "include",
       });
@@ -503,7 +499,7 @@ export default function PlaylistPage() {
                         onClick={async () => {
                           if (!confirm(`Remove ${p.user.displayName}?`)) return;
                           const res = await fetch(
-                            `${API_URL}/api/playlists/${params.shareCode}/participants/${p.user.id}`,
+                            `/api/playlists/${params.shareCode}/participants/${p.user.id}`,
                             { method: "DELETE", credentials: "include" }
                           );
                           if (res.ok)

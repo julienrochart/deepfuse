@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 interface PlaylistInfo {
   id: string;
   name: string;
@@ -24,16 +22,16 @@ export default function JoinPlaylistPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/playlists/${params.shareCode}`, { credentials: "include" }).then((r) =>
+      fetch(`/api/playlists/${params.shareCode}`, { credentials: "include" }).then((r) =>
         r.ok ? r.json() : null
       ),
-      fetch(`${API_URL}/auth/me`, { credentials: "include" }).then((r) => r.ok),
+      fetch("/auth/me", { credentials: "include" }).then((r) => r.ok),
     ]).then(async ([pl, logged]) => {
       setPlaylist(pl);
       setIsLoggedIn(logged);
 
       if (logged && pl) {
-        const res = await fetch(`${API_URL}/api/playlists/${params.shareCode}/join`, {
+        const res = await fetch(`/api/playlists/${params.shareCode}/join`, {
           method: "POST",
           credentials: "include",
         });
@@ -50,12 +48,12 @@ export default function JoinPlaylistPage() {
   async function handleJoin() {
     if (!isLoggedIn) {
       const redirect = encodeURIComponent(`/playlist/${params.shareCode}/join`);
-      window.location.href = `${API_URL}/auth/login?redirect=${redirect}`;
+      window.location.href = `/auth/login?redirect=${redirect}`;
       return;
     }
 
     setJoining(true);
-    const res = await fetch(`${API_URL}/api/playlists/${params.shareCode}/join`, {
+    const res = await fetch(`/api/playlists/${params.shareCode}/join`, {
       method: "POST",
       credentials: "include",
     });

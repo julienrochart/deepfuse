@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001";
-
 interface Stats {
   userCount: number;
   playlistCount: number;
@@ -58,10 +56,10 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("backlog");
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/admin/stats`, { credentials: "include" }),
-      fetch(`${API_URL}/api/admin/users`, { credentials: "include" }),
-      fetch(`${API_URL}/api/admin/playlists`, { credentials: "include" }),
-      fetch(`${API_URL}/api/admin/backlog`, { credentials: "include" }),
+      fetch("/api/admin/stats", { credentials: "include" }),
+      fetch("/api/admin/users", { credentials: "include" }),
+      fetch("/api/admin/playlists", { credentials: "include" }),
+      fetch("/api/admin/backlog", { credentials: "include" }),
     ])
       .then(async ([statsRes, usersRes, playlistsRes, backlogRes]) => {
         if (statsRes.status === 403 || usersRes.status === 403) {
