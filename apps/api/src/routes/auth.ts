@@ -49,10 +49,12 @@ export async function authRoutes(app: FastifyInstance) {
       }),
     });
 
+    const webUrl = process.env.WEB_URL || "http://127.0.0.1:3000";
+
     if (!tokenRes.ok) {
       const err = await tokenRes.text();
       app.log.error({ err }, "Spotify token exchange failed");
-      return reply.status(401).send({ error: "Spotify authentication failed" });
+      return reply.redirect(`${webUrl}/auth-error?reason=token`);
     }
 
     const tokens = (await tokenRes.json()) as {
@@ -68,7 +70,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (!profileRes.ok) {
       const err = await profileRes.text();
       app.log.error({ err }, "Spotify profile fetch failed");
-      return reply.status(401).send({ error: "Failed to fetch Spotify profile" });
+      return reply.redirect(`${webUrl}/auth-error?reason=profile`);
     }
 
     const profile = (await profileRes.json()) as {
@@ -109,7 +111,6 @@ export async function authRoutes(app: FastifyInstance) {
       maxAge: 60 * 60 * 24 * 30,
     });
 
-    const webUrl = process.env.WEB_URL || "http://127.0.0.1:3000";
     const { state } = req.query as { state?: string };
     const redirectPath = state && state.startsWith("/") ? state : "/home";
     return reply.redirect(`${webUrl}${redirectPath}`);
