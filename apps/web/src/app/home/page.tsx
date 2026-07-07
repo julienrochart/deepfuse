@@ -106,9 +106,9 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      {/* Top bar with avatar */}
+      {/* Top bar with logo + avatar */}
       <div className="flex items-center justify-between px-5 pt-4">
-        <div />
+        <img src="/logo-header.svg" alt="DeepFuse" className="h-7" />
         <div className="relative">
           <button
             onClick={() => setShowProfile(!showProfile)}
@@ -179,7 +179,7 @@ export default function HomePage() {
         <button
           onClick={() => setActiveTab("create")}
           className={`flex-1 py-4 text-center text-sm font-semibold transition ${
-            activeTab === "create" ? "border-b-2 border-accent text-accent" : "text-gray-300"
+            activeTab === "create" ? "border-b-2 border-accent text-accent" : "text-gray-400"
           }`}
         >
           Create a playlist
@@ -187,7 +187,7 @@ export default function HomePage() {
         <button
           onClick={() => setActiveTab("join")}
           className={`flex-1 py-4 text-center text-sm font-semibold transition ${
-            activeTab === "join" ? "border-b-2 border-accent text-accent" : "text-gray-300"
+            activeTab === "join" ? "border-b-2 border-accent text-accent" : "text-gray-400"
           }`}
         >
           Join a playlist
@@ -201,10 +201,9 @@ export default function HomePage() {
             {/* Create card */}
             <button
               onClick={() => router.push("/playlist/new")}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 px-8 py-12 text-left"
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-white px-8 py-12 text-left ring-1 ring-gray-100"
             >
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10" />
-              <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-accent/10" />
+              <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-primary/8" />
               <div className="relative">
                 <h2 className="mb-3 text-2xl font-bold text-gray-900">Create your own</h2>
                 <p className="mb-6 text-sm text-accent">
