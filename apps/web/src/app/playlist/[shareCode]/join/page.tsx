@@ -28,12 +28,24 @@ export default function JoinPlaylistPage() {
         r.ok ? r.json() : null
       ),
       fetch(`${API_URL}/auth/me`, { credentials: "include" }).then((r) => r.ok),
-    ]).then(([pl, logged]) => {
+    ]).then(async ([pl, logged]) => {
       setPlaylist(pl);
       setIsLoggedIn(logged);
+
+      if (logged && pl) {
+        const res = await fetch(`${API_URL}/api/playlists/${params.shareCode}/join`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (res.ok) {
+          router.push(`/playlist/${params.shareCode}`);
+          return;
+        }
+      }
+
       setLoading(false);
     });
-  }, [params.shareCode]);
+  }, [params.shareCode, router]);
 
   async function handleJoin() {
     if (!isLoggedIn) {
