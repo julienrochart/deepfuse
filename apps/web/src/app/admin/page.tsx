@@ -39,7 +39,6 @@ interface BacklogItem {
   status: string;
 }
 
-const STATUS_OPTIONS = ["TODO", "Partiel", "Done", "Hors périmètre"];
 const STATUS_COLORS: Record<string, string> = {
   Done: "bg-green-100 text-green-700",
   TODO: "bg-gray-100 text-gray-500",
@@ -57,8 +56,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("backlog");
-  const [saving, setSaving] = useState(false);
-
   useEffect(() => {
     Promise.all([
       fetch(`${API_URL}/api/admin/stats`, { credentials: "include" }),
@@ -83,21 +80,6 @@ export default function AdminPage() {
       .catch(() => setError("Failed to load admin data"))
       .finally(() => setLoading(false));
   }, [router]);
-
-  async function updateStatus(us: string, status: string) {
-    setSaving(true);
-    const res = await fetch(`${API_URL}/api/admin/backlog`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify([{ us, status }]),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setBacklog(updated);
-    }
-    setSaving(false);
-  }
 
   if (loading) {
     return (
@@ -193,21 +175,9 @@ export default function AdminPage() {
                   <p className="min-w-0 flex-1 truncate text-sm text-gray-900">
                     {item.description}
                   </p>
-                  <select
-                    value={item.status}
-                    disabled={saving}
-                    onChange={(e) => updateStatus(item.us, e.target.value)}
-                    className={`rounded-lg px-2 py-1 text-xs font-medium ${colorClass} cursor-pointer border-0 focus:outline-none`}
-                  >
-                    {STATUS_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                    {!STATUS_OPTIONS.includes(item.status) && (
-                      <option value={item.status}>{item.status}</option>
-                    )}
-                  </select>
+                  <span className={`rounded-lg px-2 py-1 text-xs font-medium ${colorClass}`}>
+                    {item.status}
+                  </span>
                 </div>
               );
             })}

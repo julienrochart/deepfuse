@@ -3,7 +3,9 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-const ADMIN_SPOTIFY_IDS = (process.env.ADMIN_SPOTIFY_IDS || "").split(",").filter(Boolean);
+function getAdminIds() {
+  return (process.env.ADMIN_SPOTIFY_IDS || "").split(",").filter(Boolean);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BACKLOG_PATH = join(__dirname, "..", "..", "backlog.json");
@@ -64,7 +66,7 @@ export async function adminRoutes(app: FastifyInstance) {
 
     const { prisma } = await import("@deepfuse/db");
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !ADMIN_SPOTIFY_IDS.includes(user.spotifyId))
+    if (!user || !getAdminIds().includes(user.spotifyId))
       return reply.status(403).send({ error: "Admin access required" });
   });
 
