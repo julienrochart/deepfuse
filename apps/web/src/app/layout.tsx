@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import InstallBanner from "./install-banner";
 
 export const metadata: Metadata = {
   title: "DeepFuse",
@@ -23,8 +24,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
       <body className="bg-white text-gray-900 antialiased">
         <main className="mx-auto min-h-dvh max-w-md">{children}</main>
+        <InstallBanner />
       </body>
     </html>
   );
