@@ -29,32 +29,6 @@ export async function playlistRoutes(app: FastifyInstance) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Sync: remove playlists no longer in user's Spotify library
-    const toCheck = playlists.filter((p) => p.spotifyPlaylistId);
-    if (toCheck.length > 0) {
-      try {
-        const token = await getValidToken(userId);
-        const spotifyIds = new Set<string>();
-        let url: string | null = "https://api.spotify.com/v1/me/playlists?limit=50";
-        while (url) {
-          const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-          if (!res.ok) break;
-          const data = (await res.json()) as { items: { id: string }[]; next: string | null };
-          data.items.forEach((p) => spotifyIds.add(p.id));
-          url = data.next;
-        }
-        const deleted = toCheck
-          .filter((p) => !spotifyIds.has(p.spotifyPlaylistId!))
-          .map((p) => p.id);
-        if (deleted.length > 0) {
-          await prisma.playlist.deleteMany({ where: { id: { in: deleted } } });
-          return playlists.filter((p) => !deleted.includes(p.id));
-        }
-      } catch (err) {
-        app.log.warn({ err }, "Spotify sync check failed, returning local list");
-      }
-    }
-
     return playlists;
   });
 
