@@ -133,10 +133,15 @@ export async function playlistRoutes(app: FastifyInstance) {
 
     // Smart fuse: analyze audio features, find common ground, smooth transitions
     let fused;
+    let featuresMap = new Map<
+      string,
+      { energy: number; danceability: number; valence: number; tempo: number }
+    >();
     try {
       const allTrackIds = [...tracksByUser.values()].flatMap((tracks) => tracks.map((t) => t.id));
       const features = await getAudioFeatures(userId, allTrackIds);
       app.log.info({ featuresCount: features.size }, "Fetched audio features");
+      featuresMap = features as typeof featuresMap;
       fused = smartFuse(tracksByUser, features);
     } catch (err) {
       app.log.warn({ err }, "Audio features failed, falling back to basic fusion");
@@ -170,19 +175,6 @@ export async function playlistRoutes(app: FastifyInstance) {
 
     // Save tracks in our database
     await prisma.playlistTrack.deleteMany({ where: { playlistId: playlist.id } });
-
-    // Build a features map for saving to DB
-    let featuresMap = new Map<
-      string,
-      { energy: number; danceability: number; valence: number; tempo: number }
-    >();
-    try {
-      const allIds = fused.map((t) => t.id);
-      const af = await getAudioFeatures(userId, allIds);
-      featuresMap = af as typeof featuresMap;
-    } catch {
-      // features already fetched during smartFuse, ignore if second call fails
-    }
 
     await prisma.playlistTrack.createMany({
       data: fused.map((track, i) => {
