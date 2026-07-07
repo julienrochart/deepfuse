@@ -29,6 +29,13 @@ pnpm dev:api      # Start API only
 pnpm db:generate  # Generate Prisma client
 pnpm db:push      # Push schema to database
 pnpm db:migrate   # Run migrations
+pnpm lint         # ESLint
+pnpm lint:fix     # ESLint auto-fix
+pnpm format       # Prettier write
+pnpm format:check # Prettier check
+pnpm type-check   # TypeScript (all packages)
+pnpm test         # Vitest run
+pnpm test:watch   # Vitest watch mode
 ```
 
 ## Key decisions
@@ -58,7 +65,7 @@ pnpm db:migrate   # Run migrations
 | 11.0 | INVITE      | Rejoindre depuis l'app                        | Partiel — uniquement par lien                |
 | 12.0 | CONTRIBUTOR | Quitter une playlist                          | Done                                         |
 | 13.0 | CONTRIBUTOR | Accéder à l'app                               | Done                                         |
-| 14.0 | CREATOR     | Arrêter une playlist                          | TODO                                         |
+| 14.0 | CREATOR     | Arrêter une playlist                          | Done                                         |
 | 15.0 | CREATOR     | Accéder à l'app (gestion playlists)           | Done                                         |
 | 16.0 | LOGGED IN   | Supprimer mon compte                          | TODO                                         |
 | 17.0 | CREATOR     | Supprimer un contributor                      | TODO                                         |

@@ -228,6 +228,21 @@ export default function PlaylistPage() {
     }
   }
 
+  async function handleStop() {
+    if (!confirm("Stop this playlist? No one will be able to join or play it anymore.")) return;
+    const res = await fetch(`${API_URL}/api/playlists/${params.shareCode}/stop`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+    if (res.ok) {
+      setPlaylist((prev) => (prev ? { ...prev, isActive: false } : prev));
+      if (isPlaying) {
+        if (useSDK) spotify.togglePlay();
+        else audioRef.current?.pause();
+      }
+    }
+  }
+
   async function handleFuse() {
     if (fusing) return;
     setFusing(true);
@@ -273,7 +288,7 @@ export default function PlaylistPage() {
   const isCreator = currentUser?.id === playlist.creator.id;
   const currentTrack = playlist.tracks[currentTrackIndex];
   const hasTracks = playlist.tracks.length > 0;
-  const canPlay = hasTracks;
+  const canPlay = hasTracks && playlist.isActive;
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
@@ -327,7 +342,7 @@ export default function PlaylistPage() {
                   </svg>
                   Share link
                 </button>
-                {isCreator && hasTracks && (
+                {isCreator && playlist.isActive && hasTracks && (
                   <button
                     onClick={handleFuse}
                     disabled={fusing}
@@ -346,11 +361,35 @@ export default function PlaylistPage() {
                     {fusing ? "Fusing..." : "Refresh fusion"}
                   </button>
                 )}
+                {isCreator && playlist.isActive && (
+                  <button
+                    onClick={handleStop}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-gray-50"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    </svg>
+                    Stop playlist
+                  </button>
+                )}
               </div>
             </>
           )}
         </div>
       </header>
+
+      {!playlist.isActive && (
+        <div className="mx-4 mb-2 rounded-xl bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600">
+          This playlist has been stopped
+        </div>
+      )}
 
       {hasTracks ? (
         <>

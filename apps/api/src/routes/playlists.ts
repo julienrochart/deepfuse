@@ -246,6 +246,26 @@ export async function playlistRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
+  app.patch<{ Params: { shareCode: string } }>("/:shareCode/stop", async (req, reply) => {
+    const userId = req.cookies.session;
+    if (!userId) return reply.status(401).send({ error: "Not authenticated" });
+
+    const { shareCode } = req.params;
+
+    const { prisma } = await import("@deepfuse/db");
+    const playlist = await prisma.playlist.findUnique({ where: { shareCode } });
+    if (!playlist) return reply.status(404).send({ error: "Playlist not found" });
+    if (playlist.creatorId !== userId)
+      return reply.status(403).send({ error: "Only the creator can stop" });
+
+    await prisma.playlist.update({
+      where: { id: playlist.id },
+      data: { isActive: false },
+    });
+
+    return { ok: true };
+  });
+
   app.delete<{ Params: { shareCode: string } }>("/:shareCode", async (req, reply) => {
     const userId = req.cookies.session;
     if (!userId) return reply.status(401).send({ error: "Not authenticated" });
