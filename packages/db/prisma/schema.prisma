@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  spotifyId       String    @unique
+  displayName     String
+  profileImageUrl String?
+  spotifyToken    String?
+  spotifyRefresh  String?
+  tokenExpiresAt  DateTime?
+  isPremium       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  createdPlaylists Playlist[]
+  participations   PlaylistParticipant[]
+
+  @@map("users")
+}
+
+model Playlist {
+  id                 String   @id @default(cuid())
+  name               String
+  description        String?
+  spotifyPlaylistId  String?
+  shareCode          String   @unique @default(cuid())
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  creatorId    String
+  creator      User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  participants PlaylistParticipant[]
+  tracks       PlaylistTrack[]
+
+  @@map("playlists")
+}
+
+model PlaylistParticipant {
+  id       String   @id @default(cuid())
+  role     String   @default("contributor") // "creator" | "contributor"
+  joinedAt DateTime @default(now())
+
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, userId])
+  @@map("playlist_participants")
+}
+
+model PlaylistTrack {
+  id             String   @id @default(cuid())
+  spotifyTrackId String
+  name           String
+  artist         String
+  albumName      String
+  albumImageUrl  String?
+  durationMs     Int
+  previewUrl     String?
+  position       Int
+  addedAt        DateTime @default(now())
+
+  addedById  String
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, spotifyTrackId])
+  @@map("playlist_tracks")
+}

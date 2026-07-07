@@ -1,0 +1,35 @@
+{
+  "name": "deepfuse",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "turbo type-check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev:web": "turbo dev --filter=@deepfuse/web",
+    "dev:api": "turbo dev --filter=@deepfuse/api",
+    "db:generate": "pnpm --filter @deepfuse/db generate",
+    "db:push": "pnpm --filter @deepfuse/db push",
+    "db:migrate": "pnpm --filter @deepfuse/db migrate"
+  },
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.4",
+    "turbo": "^2.10.3",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^4.1.10"
+  }
+}
