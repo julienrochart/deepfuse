@@ -30,6 +30,15 @@ interface AdminPlaylist {
   _count: { participants: number; tracks: number };
 }
 
+interface AccessRequest {
+  id: string;
+  email: string;
+  name: string;
+  message: string | null;
+  status: string;
+  createdAt: string;
+}
+
 interface BacklogItem {
   us: string;
   role: string;
@@ -43,7 +52,7 @@ const STATUS_COLORS: Record<string, string> = {
   "Hors périmètre": "bg-yellow-50 text-yellow-600",
 };
 
-type Tab = "users" | "playlists" | "backlog";
+type Tab = "requests" | "users" | "playlists" | "backlog";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -51,17 +60,19 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [playlists, setPlaylists] = useState<AdminPlaylist[]>([]);
   const [backlog, setBacklog] = useState<BacklogItem[]>([]);
+  const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("backlog");
+  const [tab, setTab] = useState<Tab>("requests");
   useEffect(() => {
     Promise.all([
       fetch("/api/admin/stats", { credentials: "include" }),
       fetch("/api/admin/users", { credentials: "include" }),
       fetch("/api/admin/playlists", { credentials: "include" }),
       fetch("/api/admin/backlog", { credentials: "include" }),
+      fetch("/api/admin/access-requests", { credentials: "include" }),
     ])
-      .then(async ([statsRes, usersRes, playlistsRes, backlogRes]) => {
+      .then(async ([statsRes, usersRes, playlistsRes, backlogRes, requestsRes]) => {
         if (statsRes.status === 403 || usersRes.status === 403) {
           setError("Access denied");
           return;
@@ -74,6 +85,7 @@ export default function AdminPage() {
         setUsers(await usersRes.json());
         setPlaylists(await playlistsRes.json());
         setBacklog(await backlogRes.json());
+        setRequests(await requestsRes.json());
       })
       .catch(() => setError("Failed to load admin data"))
       .finally(() => setLoading(false));
@@ -129,7 +141,7 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className="mb-4 flex border-b">
-        {(["backlog", "users", "playlists"] as Tab[]).map((t) => (
+        {(["requests", "backlog", "users", "playlists"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -143,7 +155,76 @@ export default function AdminPage() {
       </div>
 
       {/* Content */}
-      {tab === "backlog" ? (
+      {tab === "requests" ? (
+        <div className="flex flex-col gap-2">
+          {requests.length === 0 && (
+            <p className="py-8 text-center text-gray-400">No access requests</p>
+          )}
+          {requests.map((r) => {
+            const statusColor =
+              r.status === "approved"
+                ? "bg-green-100 text-green-700"
+                : r.status === "rejected"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-yellow-100 text-yellow-700";
+            return (
+              <div key={r.id} className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900">{r.name}</p>
+                  <p className="text-xs text-gray-500">{r.email}</p>
+                  {r.message && <p className="mt-1 text-xs italic text-gray-400">{r.message}</p>}
+                </div>
+                <span className="text-xs text-gray-300">
+                  {new Date(r.createdAt).toLocaleDateString()}
+                </span>
+                <span className={`rounded-lg px-2 py-1 text-xs font-medium ${statusColor}`}>
+                  {r.status}
+                </span>
+                {r.status === "pending" && (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={async () => {
+                        await fetch(`/api/admin/access-requests/${r.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ status: "approved" }),
+                        });
+                        setRequests((prev) =>
+                          prev.map((req) =>
+                            req.id === r.id ? { ...req, status: "approved" } : req
+                          )
+                        );
+                      }}
+                      className="rounded-lg bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await fetch(`/api/admin/access-requests/${r.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ status: "rejected" }),
+                        });
+                        setRequests((prev) =>
+                          prev.map((req) =>
+                            req.id === r.id ? { ...req, status: "rejected" } : req
+                          )
+                        );
+                      }}
+                      className="rounded-lg bg-red-400 px-3 py-1 text-xs font-medium text-white hover:bg-red-500"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : tab === "backlog" ? (
         <div>
           <div className="mb-4 flex items-center justify-between">
             <p className="text-xs text-gray-400">

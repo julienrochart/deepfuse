@@ -115,6 +115,18 @@ export async function adminRoutes(app: FastifyInstance) {
     return backlog;
   });
 
+  app.get("/access-requests", async () => {
+    const { prisma } = await import("@deepfuse/db");
+    return prisma.accessRequest.findMany({ orderBy: { createdAt: "desc" } });
+  });
+
+  app.patch("/access-requests/:id", async (req) => {
+    const { id } = req.params as { id: string };
+    const { status } = req.body as { status: string };
+    const { prisma } = await import("@deepfuse/db");
+    return prisma.accessRequest.update({ where: { id }, data: { status } });
+  });
+
   app.get("/playlists", async () => {
     const { prisma } = await import("@deepfuse/db");
 
