@@ -76,16 +76,26 @@ export default function PlaylistPage() {
   const spotify = useSpotifyPlayer();
   const useSDK = spotify.isPremium && spotify.isReady;
 
+  const fetchPlaylist = useCallback(() => {
+    return fetch(`/api/playlists/${params.shareCode}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((pl) => setPlaylist(pl));
+  }, [params.shareCode]);
+
   useEffect(() => {
     Promise.all([
-      fetch(`/api/playlists/${params.shareCode}`, { credentials: "include" }).then((r) => r.json()),
+      fetchPlaylist(),
       fetch("/auth/me", { credentials: "include" }).then((r) => (r.ok ? r.json() : null)),
-    ]).then(([pl, user]) => {
-      setPlaylist(pl);
+    ]).then(([, user]) => {
       setCurrentUser(user);
       setLoading(false);
     });
-  }, [params.shareCode]);
+  }, [fetchPlaylist]);
+
+  useEffect(() => {
+    const interval = setInterval(fetchPlaylist, 5000);
+    return () => clearInterval(interval);
+  }, [fetchPlaylist]);
 
   useEffect(() => {
     if (useSDK) return;
