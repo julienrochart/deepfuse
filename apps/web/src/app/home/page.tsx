@@ -220,64 +220,6 @@ export default function HomePage() {
                 </div>
               </div>
             </button>
-
-            {/* Existing playlists */}
-            {playlists.length > 0 && (
-              <div>
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  My playlists
-                </h3>
-                <div className="flex flex-col gap-2">
-                  {playlists.map((pl) => (
-                    <div
-                      key={pl.id}
-                      className="group flex items-center gap-4 rounded-2xl bg-gray-50 px-4 py-3 transition hover:bg-gray-100"
-                    >
-                      <button
-                        onClick={() => router.push(`/playlist/${pl.shareCode}`)}
-                        className="flex min-w-0 flex-1 items-center gap-4 text-left"
-                      >
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-900">
-                          <div className="h-4 w-4 rounded-full bg-gray-700">
-                            <div className="mx-auto mt-1.5 h-1 w-1 rounded-full bg-white" />
-                          </div>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-gray-900">{pl.name}</p>
-                          <p className="text-xs text-gray-400">
-                            {pl.participants.length} participant
-                            {pl.participants.length > 1 ? "s" : ""} · {pl._count.tracks} tracks
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (!confirm(`Delete "${pl.name}"?`)) return;
-                          const res = await fetch(`/api/playlists/${pl.shareCode}`, {
-                            method: "DELETE",
-                            credentials: "include",
-                          });
-                          if (res.ok) setPlaylists((prev) => prev.filter((p) => p.id !== pl.id));
-                        }}
-                        className="flex-shrink-0 p-1 text-gray-300 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         ) : (
           <div className="flex flex-1 flex-col items-center gap-6 pt-8">
@@ -322,6 +264,64 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* My playlists — always visible */}
+      {playlists.length > 0 && (
+        <div className="px-5 pb-4">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            My playlists
+          </h3>
+          <div className="flex flex-col gap-2">
+            {playlists.map((pl) => (
+              <div
+                key={pl.id}
+                className="group flex items-center gap-4 rounded-2xl bg-gray-50 px-4 py-3 transition hover:bg-gray-100"
+              >
+                <button
+                  onClick={() => router.push(`/playlist/${pl.shareCode}`)}
+                  className="flex min-w-0 flex-1 items-center gap-4 text-left"
+                >
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-900">
+                    <div className="h-4 w-4 rounded-full bg-gray-700">
+                      <div className="mx-auto mt-1.5 h-1 w-1 rounded-full bg-white" />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-gray-900">{pl.name}</p>
+                    <p className="text-xs text-gray-400">
+                      {pl.participants.length} participant
+                      {pl.participants.length > 1 ? "s" : ""} · {pl._count.tracks} tracks
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!confirm(`Delete "${pl.name}"?`)) return;
+                    const res = await fetch(`/api/playlists/${pl.shareCode}`, {
+                      method: "DELETE",
+                      credentials: "include",
+                    });
+                    if (res.ok) setPlaylists((prev) => prev.filter((p) => p.id !== pl.id));
+                  }}
+                  className="flex-shrink-0 p-1 text-gray-300 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bottom nav */}
       <nav className="flex border-t border-gray-100 py-3">
