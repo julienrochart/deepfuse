@@ -2,9 +2,11 @@ import type { FastifyInstance } from "fastify";
 import {
   getSavedTracks,
   getValidToken,
+  getAudioFeatures,
   createSpotifyPlaylist,
   addTracksToSpotifyPlaylist,
   fuseTracks,
+  smartFuse,
 } from "../spotify.js";
 
 export async function playlistRoutes(app: FastifyInstance) {
@@ -152,8 +154,17 @@ export async function playlistRoutes(app: FastifyInstance) {
       }
     }
 
-    // Fuse tracks (round-robin interleave, deduped)
-    const fused = fuseTracks(tracksByUser);
+    // Smart fuse: analyze audio features, find common ground, smooth transitions
+    let fused;
+    try {
+      const allTrackIds = [...tracksByUser.values()].flatMap((tracks) => tracks.map((t) => t.id));
+      const features = await getAudioFeatures(userId, allTrackIds);
+      app.log.info({ featuresCount: features.size }, "Fetched audio features");
+      fused = smartFuse(tracksByUser, features);
+    } catch (err) {
+      app.log.warn({ err }, "Audio features failed, falling back to basic fusion");
+      fused = fuseTracks(tracksByUser);
+    }
 
     if (fused.length === 0) {
       return reply.status(400).send({ error: "No tracks found from participants" });
