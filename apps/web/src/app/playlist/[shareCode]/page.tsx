@@ -67,7 +67,7 @@ export default function PlaylistPage() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [featuresTrackId, setFeaturesTrackId] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
-  const [showTracklist, setShowTracklist] = useState(true);
+  const showTracklist = true;
 
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [previewProgress, setPreviewProgress] = useState(0);
@@ -210,7 +210,6 @@ export default function PlaylistPage() {
   const handleSelectTrack = useCallback(
     async (index: number) => {
       setCurrentTrackIndex(index);
-      setShowTracklist(false);
       if (useSDK && playlist?.tracks.length) {
         const uris = playlist.tracks.map((t) => `spotify:track:${t.spotifyTrackId}`);
         await spotify.play(uris, index);
@@ -615,125 +614,109 @@ export default function PlaylistPage() {
             </span>
           </div>
 
-          {/* Tracklist toggle + list */}
+          {/* Tracklist */}
           <div className="flex-1 border-t border-gray-100">
-            <button
-              onClick={() => setShowTracklist(!showTracklist)}
-              className="flex w-full items-center justify-between px-6 py-3"
-            >
+            <div className="px-6 py-3">
               <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                 {playlist.tracks.length} tracks
               </span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className={`text-gray-400 transition-transform ${showTracklist ? "rotate-180" : ""}`}
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
+            </div>
 
-            {showTracklist && (
-              <div className="max-h-[40vh] overflow-y-auto px-4 pb-4">
-                {playlist.tracks.map((track, i) => (
-                  <div key={track.id} className="relative">
-                    <div
-                      className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition ${
-                        i === currentTrackIndex ? "bg-primary/5" : "hover:bg-gray-50"
-                      }`}
+            <div className="max-h-[40vh] overflow-y-auto px-4 pb-4">
+              {playlist.tracks.map((track, i) => (
+                <div key={track.id} className="relative">
+                  <div
+                    className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition ${
+                      i === currentTrackIndex ? "bg-primary/5" : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <button
+                      onClick={() => handleSelectTrack(i)}
+                      className="flex min-w-0 flex-1 items-center gap-3"
                     >
-                      <button
-                        onClick={() => handleSelectTrack(i)}
-                        className="flex min-w-0 flex-1 items-center gap-3"
-                      >
-                        <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg">
-                          {track.albumImageUrl ? (
-                            <img
-                              src={track.albumImageUrl}
-                              alt={track.albumName}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">
-                              ?
-                            </div>
-                          )}
-                          {i === currentTrackIndex && isPlaying && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                                <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`truncate text-sm font-medium ${i === currentTrackIndex ? "text-primary" : "text-gray-900"}`}
-                          >
-                            {track.name}
-                          </p>
-                          <p className="truncate text-xs text-gray-400">
-                            {track.artist}
-                            <span className="text-gray-300">
-                              {" "}
-                              · {track.addedBy?.displayName?.split(" ")[0]}
-                            </span>
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFeaturesTrackId(featuresTrackId === track.id ? null : track.id);
-                        }}
-                        className="flex-shrink-0 p-1.5 text-gray-300 transition hover:text-primary"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="16" x2="12" y2="12" />
-                          <line x1="12" y1="8" x2="12.01" y2="8" />
-                        </svg>
-                      </button>
-                      <span className="text-xs tabular-nums text-gray-300">
-                        {formatDuration(track.durationMs)}
-                      </span>
-                    </div>
-                    {featuresTrackId === track.id && track.energy != null && (
-                      <div className="mx-2 mb-1 rounded-lg bg-gray-50 px-3 py-2">
-                        <div className="grid grid-cols-4 gap-2 text-center">
-                          {[
-                            { label: "Energy", value: track.energy },
-                            { label: "Dance", value: track.danceability },
-                            { label: "Mood", value: track.valence },
-                            { label: "BPM", value: track.tempo, isBpm: true },
-                          ].map((f) => (
-                            <div key={f.label}>
-                              <p className="text-[10px] text-gray-400">{f.label}</p>
-                              <p className="text-xs font-semibold text-primary">
-                                {f.isBpm
-                                  ? Math.round(f.value ?? 0)
-                                  : `${Math.round((f.value ?? 0) * 100)}%`}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg">
+                        {track.albumImageUrl ? (
+                          <img
+                            src={track.albumImageUrl}
+                            alt={track.albumName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">
+                            ?
+                          </div>
+                        )}
+                        {i === currentTrackIndex && isPlaying && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate text-sm font-medium ${i === currentTrackIndex ? "text-primary" : "text-gray-900"}`}
+                        >
+                          {track.name}
+                        </p>
+                        <p className="truncate text-xs text-gray-400">
+                          {track.artist}
+                          <span className="text-gray-300">
+                            {" "}
+                            · {track.addedBy?.displayName?.split(" ")[0]}
+                          </span>
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFeaturesTrackId(featuresTrackId === track.id ? null : track.id);
+                      }}
+                      className="flex-shrink-0 p-1.5 text-gray-300 transition hover:text-primary"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                    </button>
+                    <span className="text-xs tabular-nums text-gray-300">
+                      {formatDuration(track.durationMs)}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  {featuresTrackId === track.id && track.energy != null && (
+                    <div className="mx-2 mb-1 rounded-lg bg-gray-50 px-3 py-2">
+                      <div className="grid grid-cols-4 gap-2 text-center">
+                        {[
+                          { label: "Energy", value: track.energy },
+                          { label: "Dance", value: track.danceability },
+                          { label: "Mood", value: track.valence },
+                          { label: "BPM", value: track.tempo, isBpm: true },
+                        ].map((f) => (
+                          <div key={f.label}>
+                            <p className="text-[10px] text-gray-400">{f.label}</p>
+                            <p className="text-xs font-semibold text-primary">
+                              {f.isBpm
+                                ? Math.round(f.value ?? 0)
+                                : `${Math.round((f.value ?? 0) * 100)}%`}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </>
       ) : (
