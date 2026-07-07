@@ -20,7 +20,7 @@ interface Track {
   durationMs: number;
   previewUrl: string | null;
   position: number;
-  addedBy: { id: string; displayName: string };
+  addedBy?: { id: string; displayName: string } | null;
   energy: number | null;
   danceability: number | null;
   valence: number | null;
@@ -662,10 +662,12 @@ export default function PlaylistPage() {
                         </p>
                         <p className="truncate text-xs text-gray-400">
                           {track.artist}
-                          <span className="text-gray-300">
-                            {" "}
-                            · {track.addedBy?.displayName?.split(" ")[0]}
-                          </span>
+                          {track.addedBy?.displayName && (
+                            <span className="text-gray-300">
+                              {" "}
+                              · {track.addedBy.displayName.split(" ")[0]}
+                            </span>
+                          )}
                         </p>
                       </div>
                     </button>
