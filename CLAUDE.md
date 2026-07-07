@@ -67,6 +67,6 @@ pnpm test:watch   # Vitest watch mode
 | 13.0 | CONTRIBUTOR | Accéder à l'app                               | Done                                         |
 | 14.0 | CREATOR     | Arrêter une playlist                          | Done                                         |
 | 15.0 | CREATOR     | Accéder à l'app (gestion playlists)           | Done                                         |
-| 16.0 | LOGGED IN   | Supprimer mon compte                          | TODO                                         |
+| 16.0 | LOGGED IN   | Supprimer mon compte                          | Done                                         |
 | 17.0 | CREATOR     | Supprimer un contributor                      | TODO                                         |
 | 18.0 | ADMIN       | Dashboard admin                               | TODO                                         |

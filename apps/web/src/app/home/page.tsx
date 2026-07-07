@@ -57,6 +57,15 @@ export default function HomePage() {
     window.location.href = "/";
   }
 
+  async function handleDeleteAccount() {
+    if (!confirm("Are you sure? All your playlists and data will be permanently deleted.")) return;
+    const res = await fetch(`${API_URL}/auth/account`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (res.ok) window.location.href = "/";
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
@@ -112,6 +121,22 @@ export default function HomePage() {
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
                   </svg>
                   Log out
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-gray-50"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                  </svg>
+                  Delete account
                 </button>
               </div>
             </>

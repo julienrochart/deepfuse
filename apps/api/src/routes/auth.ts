@@ -149,6 +149,16 @@ export async function authRoutes(app: FastifyInstance) {
     return { token };
   });
 
+  app.delete("/account", async (req, reply) => {
+    const userId = req.cookies.session;
+    if (!userId) return reply.status(401).send({ error: "Not authenticated" });
+
+    const { prisma } = await import("@deepfuse/db");
+    await prisma.user.delete({ where: { id: userId } });
+    reply.clearCookie("session", { path: "/" });
+    return { ok: true };
+  });
+
   app.post("/logout", async (_req, reply) => {
     reply.clearCookie("session", { path: "/" });
     return { ok: true };
