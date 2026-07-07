@@ -246,6 +246,34 @@ export async function playlistRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
+  app.delete<{ Params: { shareCode: string; userId: string } }>(
+    "/:shareCode/participants/:userId",
+    async (req, reply) => {
+      const currentUserId = req.cookies.session;
+      if (!currentUserId) return reply.status(401).send({ error: "Not authenticated" });
+
+      const { shareCode, userId: targetUserId } = req.params;
+
+      const { prisma } = await import("@deepfuse/db");
+      const playlist = await prisma.playlist.findUnique({ where: { shareCode } });
+      if (!playlist) return reply.status(404).send({ error: "Playlist not found" });
+      if (playlist.creatorId !== currentUserId)
+        return reply.status(403).send({ error: "Only the creator can remove participants" });
+      if (targetUserId === currentUserId)
+        return reply.status(400).send({ error: "Cannot remove yourself" });
+
+      await prisma.playlistParticipant.deleteMany({
+        where: { playlistId: playlist.id, userId: targetUserId },
+      });
+
+      await prisma.playlistTrack.deleteMany({
+        where: { playlistId: playlist.id, addedById: targetUserId },
+      });
+
+      return { ok: true };
+    }
+  );
+
   app.patch<{ Params: { shareCode: string } }>("/:shareCode/stop", async (req, reply) => {
     const userId = req.cookies.session;
     if (!userId) return reply.status(401).send({ error: "Not authenticated" });

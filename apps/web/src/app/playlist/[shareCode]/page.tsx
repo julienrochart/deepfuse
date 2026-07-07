@@ -489,6 +489,31 @@ export default function PlaylistPage() {
                         </div>
                       )}
                     </div>
+                    {isCreator && p.role !== "creator" && playlist.isActive && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Remove ${p.user.displayName}?`)) return;
+                          const res = await fetch(
+                            `${API_URL}/api/playlists/${params.shareCode}/participants/${p.user.id}`,
+                            { method: "DELETE", credentials: "include" }
+                          );
+                          if (res.ok)
+                            setPlaylist((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    participants: prev.participants.filter(
+                                      (pp) => pp.user.id !== p.user.id
+                                    ),
+                                  }
+                                : prev
+                            );
+                        }}
+                        className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white shadow"
+                      >
+                        x
+                      </button>
+                    )}
                     <span className="mt-0.5 max-w-[60px] truncate text-center text-[10px] text-gray-500">
                       {p.user.displayName.split(" ")[0]}
                     </span>

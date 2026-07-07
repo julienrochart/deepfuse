@@ -4,6 +4,7 @@ import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 import { authRoutes } from "./routes/auth.js";
 import { playlistRoutes } from "./routes/playlists.js";
+import { adminRoutes } from "./routes/admin.js";
 
 const app = Fastify({ logger: true });
 
@@ -18,6 +19,7 @@ app.get("/health", async () => ({ status: "ok" }));
 
 await app.register(authRoutes, { prefix: "/auth" });
 await app.register(playlistRoutes, { prefix: "/api/playlists" });
+await app.register(adminRoutes, { prefix: "/api/admin" });
 
 const port = Number(process.env.PORT) || 3001;
 
