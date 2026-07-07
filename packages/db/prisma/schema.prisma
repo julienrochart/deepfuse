@@ -21,6 +21,7 @@ model User {
 
   createdPlaylists Playlist[]
   participations   PlaylistParticipant[]
+  addedTracks      PlaylistTrack[]
 
   @@map("users")
 }
@@ -81,7 +82,13 @@ model PlaylistTrack {
   position       Int
   addedAt        DateTime @default(now())
 
+  energy       Float?
+  danceability Float?
+  valence      Float?
+  tempo        Float?
+
   addedById  String
+  addedBy    User     @relation(fields: [addedById], references: [id], onDelete: Cascade)
   playlistId String
   playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
 

@@ -91,7 +91,10 @@ export async function playlistRoutes(app: FastifyInstance) {
         participants: {
           include: { user: { select: { id: true, displayName: true, profileImageUrl: true } } },
         },
-        tracks: { orderBy: { position: "asc" } },
+        tracks: {
+          orderBy: { position: "asc" },
+          include: { addedBy: { select: { id: true, displayName: true } } },
+        },
       },
     });
 
@@ -194,9 +197,21 @@ export async function playlistRoutes(app: FastifyInstance) {
     // Save tracks in our database
     await prisma.playlistTrack.deleteMany({ where: { playlistId: playlist.id } });
 
+    // Build a features map for saving to DB
+    let featuresMap = new Map<
+      string,
+      { energy: number; danceability: number; valence: number; tempo: number }
+    >();
+    try {
+      const allIds = fused.map((t) => t.id);
+      const af = await getAudioFeatures(userId, allIds);
+      featuresMap = af as typeof featuresMap;
+    } catch {
+      // features already fetched during smartFuse, ignore if second call fails
+    }
+
     await prisma.playlistTrack.createMany({
       data: fused.map((track, i) => {
-        // Find which user contributed this track
         let addedById = userId;
         for (const [uid, tracks] of tracksByUser) {
           if (tracks.some((t) => t.id === track.id)) {
@@ -204,6 +219,7 @@ export async function playlistRoutes(app: FastifyInstance) {
             break;
           }
         }
+        const feat = featuresMap.get(track.id);
         return {
           playlistId: playlist.id,
           spotifyTrackId: track.id,
@@ -215,6 +231,10 @@ export async function playlistRoutes(app: FastifyInstance) {
           previewUrl: track.preview_url,
           position: i,
           addedById,
+          energy: feat?.energy ?? null,
+          danceability: feat?.danceability ?? null,
+          valence: feat?.valence ?? null,
+          tempo: feat?.tempo ?? null,
         };
       }),
     });
@@ -229,7 +249,10 @@ export async function playlistRoutes(app: FastifyInstance) {
         participants: {
           include: { user: { select: { id: true, displayName: true, profileImageUrl: true } } },
         },
-        tracks: { orderBy: { position: "asc" } },
+        tracks: {
+          orderBy: { position: "asc" },
+          include: { addedBy: { select: { id: true, displayName: true } } },
+        },
       },
     });
 
