@@ -16,12 +16,13 @@
     "db:generate": "pnpm --filter @deepfuse/db generate",
     "db:push": "pnpm --filter @deepfuse/db push",
     "db:migrate": "pnpm --filter @deepfuse/db migrate",
+    "db:deploy": "prisma migrate deploy --schema=packages/db/prisma/schema.prisma",
     "prepare": "husky"
   },
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

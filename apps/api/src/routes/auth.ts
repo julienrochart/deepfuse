@@ -101,10 +101,11 @@ export async function authRoutes(app: FastifyInstance) {
       },
     });
 
+    const isProd = process.env.NODE_ENV === "production";
     reply.setCookie("session", user.id, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
@@ -155,12 +156,22 @@ export async function authRoutes(app: FastifyInstance) {
 
     const { prisma } = await import("@deepfuse/db");
     await prisma.user.delete({ where: { id: userId } });
-    reply.clearCookie("session", { path: "/" });
+    const isProdDel = process.env.NODE_ENV === "production";
+    reply.clearCookie("session", {
+      path: "/",
+      secure: isProdDel,
+      sameSite: isProdDel ? "none" : "lax",
+    });
     return { ok: true };
   });
 
   app.post("/logout", async (_req, reply) => {
-    reply.clearCookie("session", { path: "/" });
+    const isProdLogout = process.env.NODE_ENV === "production";
+    reply.clearCookie("session", {
+      path: "/",
+      secure: isProdLogout,
+      sameSite: isProdLogout ? "none" : "lax",
+    });
     return { ok: true };
   });
 }

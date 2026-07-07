@@ -9,7 +9,9 @@ import { adminRoutes } from "./routes/admin.js";
 const app = Fastify({ logger: true });
 
 await app.register(cors, {
-  origin: process.env.WEB_URL || "http://127.0.0.1:3000",
+  origin: process.env.WEB_URL?.includes(",")
+    ? process.env.WEB_URL.split(",").map((u) => u.trim())
+    : process.env.WEB_URL || "http://127.0.0.1:3000",
   credentials: true,
 });
 
