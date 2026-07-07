@@ -28,7 +28,7 @@ const DEFAULT_BACKLOG: BacklogItem[] = [
   {
     us: "8.0",
     role: "CREATOR",
-    description: "Fusion des Saved Tracks (round-robin + dedup)",
+    description: "Smart Fusion (audio features + smooth sort)",
     status: "Done",
   },
   { us: "9.0", role: "CREATOR", description: "Lancer la lecture de la playlist", status: "Done" },

@@ -47,26 +47,27 @@ pnpm test:watch   # Vitest watch mode
 - Spotify API dev mode blocks `/playlists/{id}/tracks` — use `/playlists/{id}/items` instead
 - All URLs use `127.0.0.1` (not `localhost`) to avoid cross-domain cookie issues
 - Spotify sync on home: playlists deleted from Spotify library are auto-removed from DeepFuse
+- When a US status or description changes, always update **both** the backlog table in this file **and** `DEFAULT_BACKLOG` in `apps/api/src/routes/admin.ts`
 
 ## Backlog
 
-| US   | Rôle        | Description                                   | Statut         |
-| ---- | ----------- | --------------------------------------------- | -------------- |
-| 1.0  | LOGOUT      | Page de présentation (landing)                | Done           |
-| 2.0  | LOGOUT      | Login via Spotify                             | Done           |
-| 3.0  | LOGOUT      | Création de compte via Spotify                | Done           |
-| 4.0  | LOGGED IN   | Page d'accueil                                | Done           |
-| 5.0  | LOGGED IN   | Créer une playlist                            | Done           |
-| 6.0  | CREATOR     | Partager la playlist via lien                 | Done           |
-| 7.0  | CREATOR     | Recherche "nearby"                            | Hors périmètre |
-| 8.0  | CREATOR     | Fusion des Saved Tracks (round-robin + dedup) | Done           |
-| 9.0  | CREATOR     | Lancer la lecture de la playlist              | Done           |
-| 10.0 | INVITE      | Rejoindre via lien de partage                 | Done           |
-| 11.0 | INVITE      | Rejoindre depuis l'app                        | Done           |
-| 12.0 | CONTRIBUTOR | Quitter une playlist                          | Done           |
-| 13.0 | CONTRIBUTOR | Accéder à l'app                               | Done           |
-| 14.0 | CREATOR     | Arrêter une playlist                          | Done           |
-| 15.0 | CREATOR     | Accéder à l'app (gestion playlists)           | Done           |
-| 16.0 | LOGGED IN   | Supprimer mon compte                          | Done           |
-| 17.0 | CREATOR     | Supprimer un contributor                      | Done           |
-| 18.0 | ADMIN       | Dashboard admin                               | Done           |
+| US   | Rôle        | Description                                 | Statut         |
+| ---- | ----------- | ------------------------------------------- | -------------- |
+| 1.0  | LOGOUT      | Page de présentation (landing)              | Done           |
+| 2.0  | LOGOUT      | Login via Spotify                           | Done           |
+| 3.0  | LOGOUT      | Création de compte via Spotify              | Done           |
+| 4.0  | LOGGED IN   | Page d'accueil                              | Done           |
+| 5.0  | LOGGED IN   | Créer une playlist                          | Done           |
+| 6.0  | CREATOR     | Partager la playlist via lien               | Done           |
+| 7.0  | CREATOR     | Recherche "nearby"                          | Hors périmètre |
+| 8.0  | CREATOR     | Smart Fusion (audio features + smooth sort) | Done           |
+| 9.0  | CREATOR     | Lancer la lecture de la playlist            | Done           |
+| 10.0 | INVITE      | Rejoindre via lien de partage               | Done           |
+| 11.0 | INVITE      | Rejoindre depuis l'app                      | Done           |
+| 12.0 | CONTRIBUTOR | Quitter une playlist                        | Done           |
+| 13.0 | CONTRIBUTOR | Accéder à l'app                             | Done           |
+| 14.0 | CREATOR     | Arrêter une playlist                        | Done           |
+| 15.0 | CREATOR     | Accéder à l'app (gestion playlists)         | Done           |
+| 16.0 | LOGGED IN   | Supprimer mon compte                        | Done           |
+| 17.0 | CREATOR     | Supprimer un contributor                    | Done           |
+| 18.0 | ADMIN       | Dashboard admin                             | Done           |
