@@ -32,24 +32,41 @@ interface AdminPlaylist {
   _count: { participants: number; tracks: number };
 }
 
-type Tab = "users" | "playlists";
+interface BacklogItem {
+  us: string;
+  role: string;
+  description: string;
+  status: string;
+}
+
+const STATUS_OPTIONS = ["TODO", "Partiel", "Done", "Hors périmètre"];
+const STATUS_COLORS: Record<string, string> = {
+  Done: "bg-green-100 text-green-700",
+  TODO: "bg-gray-100 text-gray-500",
+  "Hors périmètre": "bg-yellow-50 text-yellow-600",
+};
+
+type Tab = "users" | "playlists" | "backlog";
 
 export default function AdminPage() {
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [playlists, setPlaylists] = useState<AdminPlaylist[]>([]);
+  const [backlog, setBacklog] = useState<BacklogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("users");
+  const [tab, setTab] = useState<Tab>("backlog");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
       fetch(`${API_URL}/api/admin/stats`, { credentials: "include" }),
       fetch(`${API_URL}/api/admin/users`, { credentials: "include" }),
       fetch(`${API_URL}/api/admin/playlists`, { credentials: "include" }),
+      fetch(`${API_URL}/api/admin/backlog`, { credentials: "include" }),
     ])
-      .then(async ([statsRes, usersRes, playlistsRes]) => {
+      .then(async ([statsRes, usersRes, playlistsRes, backlogRes]) => {
         if (statsRes.status === 403 || usersRes.status === 403) {
           setError("Access denied");
           return;
@@ -61,10 +78,26 @@ export default function AdminPage() {
         setStats(await statsRes.json());
         setUsers(await usersRes.json());
         setPlaylists(await playlistsRes.json());
+        setBacklog(await backlogRes.json());
       })
       .catch(() => setError("Failed to load admin data"))
       .finally(() => setLoading(false));
   }, [router]);
+
+  async function updateStatus(us: string, status: string) {
+    setSaving(true);
+    const res = await fetch(`${API_URL}/api/admin/backlog`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify([{ us, status }]),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setBacklog(updated);
+    }
+    setSaving(false);
+  }
 
   if (loading) {
     return (
@@ -84,6 +117,9 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const doneCount = backlog.filter((b) => b.status === "Done").length;
+  const totalCount = backlog.filter((b) => b.status !== "Hors périmètre").length;
 
   return (
     <div className="mx-auto min-h-dvh max-w-2xl px-4 py-6">
@@ -113,7 +149,7 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className="mb-4 flex border-b">
-        {(["users", "playlists"] as Tab[]).map((t) => (
+        {(["backlog", "users", "playlists"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -127,7 +163,57 @@ export default function AdminPage() {
       </div>
 
       {/* Content */}
-      {tab === "users" ? (
+      {tab === "backlog" ? (
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              {doneCount}/{totalCount} completed
+            </p>
+            <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full bg-green-400 transition-all"
+                style={{ width: `${(doneCount / totalCount) * 100}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {backlog.map((item) => {
+              const colorClass =
+                STATUS_COLORS[item.status] ||
+                (item.status.startsWith("Partiel")
+                  ? "bg-blue-50 text-blue-600"
+                  : "bg-gray-100 text-gray-500");
+              return (
+                <div
+                  key={item.us}
+                  className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-2.5"
+                >
+                  <span className="w-8 text-xs font-bold text-gray-300">{item.us}</span>
+                  <span className="w-24 text-xs text-gray-400">{item.role}</span>
+                  <p className="min-w-0 flex-1 truncate text-sm text-gray-900">
+                    {item.description}
+                  </p>
+                  <select
+                    value={item.status}
+                    disabled={saving}
+                    onChange={(e) => updateStatus(item.us, e.target.value)}
+                    className={`rounded-lg px-2 py-1 text-xs font-medium ${colorClass} cursor-pointer border-0 focus:outline-none`}
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                    {!STATUS_OPTIONS.includes(item.status) && (
+                      <option value={item.status}>{item.status}</option>
+                    )}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : tab === "users" ? (
         <div className="flex flex-col gap-2">
           {users.map((u) => (
             <div key={u.id} className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
