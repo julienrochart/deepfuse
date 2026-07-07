@@ -65,6 +65,7 @@ export function useSpotifyPlayer() {
 
   useEffect(() => {
     let cancelled = false;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
     async function init() {
       const res = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
@@ -76,7 +77,10 @@ export function useSpotifyPlayer() {
       }
       setState((s) => ({ ...s, isPremium: true }));
 
-      if (document.getElementById("spotify-sdk-script")) return;
+      if (document.getElementById("spotify-sdk-script")) {
+        if (window.Spotify) createPlayer();
+        return;
+      }
 
       const script = document.createElement("script");
       script.id = "spotify-sdk-script";
@@ -86,53 +90,75 @@ export function useSpotifyPlayer() {
 
       window.onSpotifyWebPlaybackSDKReady = () => {
         if (cancelled) return;
-
-        const player = new window.Spotify.Player({
-          name: "DeepFuse",
-          getOAuthToken: async (cb) => {
-            const token = await fetchToken();
-            if (token) cb(token);
-          },
-          volume: 0.8,
-        });
-
-        player.addListener("ready", ({ device_id }: { device_id: string }) => {
-          setState((s) => ({ ...s, isReady: true, deviceId: device_id }));
-        });
-
-        player.addListener("not_ready", () => {
-          setState((s) => ({ ...s, isReady: false, deviceId: null }));
-        });
-
-        player.addListener("player_state_changed", (spotifyState: any) => {
-          if (!spotifyState) return;
-          const track = spotifyState.track_window?.current_track;
-          setState((s) => ({
-            ...s,
-            isPlaying: !spotifyState.paused,
-            currentTrackUri: track?.uri ?? null,
-            position: spotifyState.position,
-            duration: spotifyState.duration,
-          }));
-        });
-
-        player.addListener("initialization_error", ({ message }: { message: string }) => {
-          console.error("Spotify SDK init error:", message);
-        });
-
-        player.addListener("authentication_error", ({ message }: { message: string }) => {
-          console.error("Spotify SDK auth error:", message);
-        });
-
-        player.connect();
-        playerRef.current = player;
+        createPlayer();
       };
+    }
+
+    function createPlayer() {
+      if (cancelled || playerRef.current) return;
+
+      const player = new window.Spotify.Player({
+        name: "DeepFuse",
+        getOAuthToken: async (cb) => {
+          const token = await fetchToken();
+          if (token) cb(token);
+        },
+        volume: 0.8,
+      });
+
+      player.addListener("ready", ({ device_id }: { device_id: string }) => {
+        setState((s) => ({ ...s, isReady: true, deviceId: device_id }));
+      });
+
+      player.addListener("not_ready", () => {
+        setState((s) => ({ ...s, isReady: false, deviceId: null }));
+        scheduleRetry();
+      });
+
+      player.addListener("player_state_changed", (spotifyState: any) => {
+        if (!spotifyState) return;
+        const track = spotifyState.track_window?.current_track;
+        setState((s) => ({
+          ...s,
+          isPlaying: !spotifyState.paused,
+          currentTrackUri: track?.uri ?? null,
+          position: spotifyState.position,
+          duration: spotifyState.duration,
+        }));
+      });
+
+      player.addListener("initialization_error", ({ message }: { message: string }) => {
+        console.error("Spotify SDK init error:", message);
+        scheduleRetry();
+      });
+
+      player.addListener("authentication_error", ({ message }: { message: string }) => {
+        console.error("Spotify SDK auth error:", message);
+        scheduleRetry();
+      });
+
+      player.connect();
+      playerRef.current = player;
+    }
+
+    function scheduleRetry() {
+      if (cancelled || retryTimeout) return;
+      retryTimeout = setTimeout(() => {
+        retryTimeout = null;
+        if (cancelled) return;
+        if (playerRef.current) {
+          playerRef.current.disconnect();
+          playerRef.current = null;
+        }
+        createPlayer();
+      }, 5000);
     }
 
     init();
 
     return () => {
       cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
       if (playerRef.current) {
         playerRef.current.disconnect();
         playerRef.current = null;
@@ -141,7 +167,6 @@ export function useSpotifyPlayer() {
     };
   }, []);
 
-  // Poll position while playing
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 

@@ -150,18 +150,27 @@ export default function PlaylistPage() {
       return;
     }
 
-    // Try SDK even if not "ready" yet — it might connect
+    // Try SDK even if not fully "ready" yet
     if (spotify.isPremium && spotify.deviceId) {
       const uris = playlist.tracks.map((t) => `spotify:track:${t.spotifyTrackId}`);
       await spotify.play(uris, currentTrackIndex);
       return;
     }
 
-    // Fallback: preview URL
+    // Fallback: preview URL (Free users or SDK not connected)
     const audio = audioRef.current;
     if (!audio) return;
     const track = playlist.tracks[currentTrackIndex];
-    if (!track?.previewUrl) return;
+    if (!track?.previewUrl) {
+      // Skip to next track that has a preview
+      const nextWithPreview = playlist.tracks.findIndex(
+        (t, i) => i > currentTrackIndex && t.previewUrl
+      );
+      if (nextWithPreview >= 0) {
+        setCurrentTrackIndex(nextWithPreview);
+      }
+      return;
+    }
     if (previewPlaying) {
       audio.pause();
     } else {
@@ -598,7 +607,9 @@ export default function PlaylistPage() {
                 ? "Spotify Premium"
                 : spotify.isPremium
                   ? "Connecting to Spotify..."
-                  : "Preview 30s"}
+                  : currentTrack?.previewUrl
+                    ? "Preview 30s"
+                    : "Open in Spotify to listen"}
             </span>
           </div>
 

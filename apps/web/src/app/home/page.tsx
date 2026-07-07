@@ -30,6 +30,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("create");
   const [showProfile, setShowProfile] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -55,6 +58,33 @@ export default function HomePage() {
   async function handleLogout() {
     await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
     window.location.href = "/";
+  }
+
+  async function handleJoin() {
+    if (!joinCode.trim()) return;
+    setJoining(true);
+    setJoinError(null);
+
+    const input = joinCode.trim();
+    const match = input.match(/\/playlist\/([^/]+)\/join/) || input.match(/\/playlist\/([^/]+)/);
+    const shareCode = match ? match[1] : input;
+
+    try {
+      const res = await fetch(`${API_URL}/api/playlists/${shareCode}/join`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        router.push(`/playlist/${shareCode}`);
+      } else {
+        const data = await res.json();
+        setJoinError(data.error || "Could not join playlist");
+      }
+    } catch {
+      setJoinError("Connection error");
+    } finally {
+      setJoining(false);
+    }
   }
 
   async function handleDeleteAccount() {
@@ -255,26 +285,44 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-6">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/5">
+          <div className="flex flex-1 flex-col items-center gap-6 pt-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/5">
               <svg
-                width="40"
-                height="40"
+                width="36"
+                height="36"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
                 className="text-primary"
               >
-                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path d="M2 12h7M15 12h7M12 2v7M12 15v7" />
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
               </svg>
             </div>
-            <div className="text-center">
-              <h2 className="mb-2 text-lg font-bold text-gray-900">Join a playlist</h2>
-              <p className="text-sm text-gray-400">
-                Use a shared link or scan nearby to find a playlist
+            <div className="w-full max-w-xs text-center">
+              <h2 className="mb-1 text-lg font-bold text-gray-900">Join a playlist</h2>
+              <p className="mb-6 text-sm text-gray-400">
+                Paste a shared link or enter a playlist code
               </p>
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(e) => {
+                  setJoinCode(e.target.value);
+                  setJoinError(null);
+                }}
+                placeholder="Link or code..."
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-center text-sm text-gray-900 placeholder:text-gray-300 focus:border-primary focus:outline-none"
+              />
+              {joinError && <p className="mt-2 text-xs text-red-500">{joinError}</p>}
+              <button
+                onClick={handleJoin}
+                disabled={!joinCode.trim() || joining}
+                className="mt-4 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition disabled:opacity-40"
+              >
+                {joining ? "Joining..." : "Join"}
+              </button>
             </div>
           </div>
         )}
